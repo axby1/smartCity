@@ -1,0 +1,54 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      matrix:
+        service: [sensor-producer, data-processor, ml-service, dashboard] # <-- add more here
+
+    steps:
+      - name: 🧱 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐳 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔑 Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: 🧠 Check if service Dockerfile changed
+        id: changes
+        uses: tj-actions/changed-files@v45
+        with:
+          files: |
+            ${{ matrix.service }}/Dockerfile
+            ${{ matrix.service }}/**/*.js
+            docker-compose.yml
+
+      - name: 🏗️ Build and push image (only if changed)
+        if: steps.changes.outputs.any_changed == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: ./${{ matrix.service }}
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/smartcity-${{ matrix.service }}:latest
+
+      - name: ✅ Skip unchanged services
+        if: steps.changes.outputs.any_changed != 'true'
+        run: echo "No changes in ${{ matrix.service }}, skipping build."
