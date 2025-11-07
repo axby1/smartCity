@@ -1,0 +1,14 @@
+{
+  "name": "sensor-simulator",
+  "version": "1.0.0",
+  "description": "Smart City Sensor Simulator Service",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "kafkajs": "^2.2.4",
+    "dotenv": "^16.4.1"
+  }
+}
