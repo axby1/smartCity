@@ -64,6 +64,7 @@ services:
       - KAFKA_BROKER=kafka:9092
     volumes:
       - ./services/data-processor:/app
+      - /app/node_modules
     restart: always
 
   # --- SENSOR SIMULATOR ---
@@ -76,7 +77,24 @@ services:
       - KAFKA_BROKER=kafka:9092
     volumes:
       - ./services/sensor-simulator:/app
+      - /app/node_modules
     restart: always
+
+  # --- DATA ANALYTICS ---
+  data-analytics:
+    build: ./services/data-analytics
+    container_name: data-analytics
+    depends_on:
+      - mongodb
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/smartcity
+    ports:
+      - "5002:5002"
+    volumes:
+      - ./services/data-analytics:/app
+      - /app/node_modules  # ⬅️ Prevents overwrite! so no need to install node modules locally
+    restart: always
+  
 
 volumes:
   mongo-data:
