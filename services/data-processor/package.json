@@ -1,0 +1,14 @@
+{
+  "name": "data-processor",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "kafkajs": "^2.2.4",
+    "mongoose": "^8.5.1",
+    "dotenv": "^16.4.5"
+  }
+}

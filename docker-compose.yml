@@ -1,0 +1,82 @@
+services:
+  # --- KAFKA + ZOOKEEPER + UI ---
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.1
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.1
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9094"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:9094
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD", "bash", "-c", "nc -z localhost 9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      - kafka
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: smartcity-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+
+  # --- MONGODB ---
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  # --- DATA PROCESSOR ---
+  data-processor:
+    build: ./services/data-processor
+    container_name: data-processor
+    depends_on:
+      - kafka
+      - mongodb
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/smartcity
+      - KAFKA_BROKER=kafka:9092
+    volumes:
+      - ./services/data-processor:/app
+    restart: always
+
+  # --- SENSOR SIMULATOR ---
+  sensor-simulator:
+    build: ./services/sensor-simulator
+    container_name: sensor-simulator
+    depends_on:
+      - kafka
+    environment:
+      - KAFKA_BROKER=kafka:9092
+    volumes:
+      - ./services/sensor-simulator:/app
+    restart: always
+
+volumes:
+  mongo-data:
