@@ -80,20 +80,23 @@ services:
       - /app/node_modules
     restart: always
 
-  # --- DATA ANALYTICS ---
-  data-analytics:
-    build: ./services/data-analytics
-    container_name: data-analytics
+  # --- SMART ANALYTICS SERVICE ---
+  smart-analytics:
+    build: ./services/smart-analytics
+    container_name: smart-analytics
     depends_on:
+      - kafka
       - mongodb
     environment:
+      - KAFKA_BROKER=kafka:9092
+      - KAFKA_CONSUME_TOPIC=telemetry
+      - KAFKA_PUBLISH_TOPIC=analytics-output
       - MONGO_URI=mongodb://mongodb:27017/smartcity
     ports:
-      - "5002:5002"
+      - "8000:8000"
     volumes:
-      - ./services/data-analytics:/app
-      - /app/node_modules  # ⬅️ Prevents overwrite! so no need to install node modules locally
-    restart: always
+      - ./services/smart-analytics/models:/app/models
+  
   
 
 volumes:

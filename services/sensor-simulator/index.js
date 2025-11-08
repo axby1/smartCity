@@ -42,12 +42,47 @@ async function connectKafka() {
 
 // Generate random telemetry data
 function generateTelemetry() {
+  // sample sensor pool (optional — keeps stable ids/zones)
+  const sensors = [
+    { id: "sensor-001", zone: "north", lat: 40.7128, lon: -74.0060 },
+    { id: "sensor-002", zone: "south", lat: 40.7060, lon: -74.0086 },
+    { id: "sensor-003", zone: "east",  lat: 40.7150, lon: -74.0000 },
+    { id: "sensor-004", zone: "west",  lat: 40.7100, lon: -74.0150 }
+  ];
+  const s = sensors[Math.floor(Math.random() * sensors.length)];
+
+  const temperature = parseFloat((20 + Math.random() * 15).toFixed(2));
+  const humidity = parseFloat((30 + Math.random() * 50).toFixed(2));
+  const trafficDensity = Math.floor(Math.random() * 100);
+  const pollutionLevel = parseFloat((50 + Math.random() * 50).toFixed(2));
+  const batteryLevel = Math.round(20 + Math.random() * 80); // 20-100%
+  const signalStrength = Math.round(50 + Math.random() * 50); // 50-100 dBm-ish
+  const co2Level = Math.round(350 + Math.random() * 800); // ppm
+  const noiseLevel = parseFloat((30 + Math.random() * 70).toFixed(1)); // dB
+  const lightLevel = Math.round(Math.random() * 1000); // lux
+  const occupancy = Math.random() < 0.2 ? 0 : Math.floor(Math.random() * 10); // 0..9 with some zeros
+  const deviceModels = ["TX-100","X1-Pro","EnviroSense-v2"];
+  const firmwareVersion = `v${Math.floor(1 + Math.random()*3)}.${Math.floor(Math.random()*10)}`;
+
   return {
     timestamp: new Date().toISOString(),
-    temperature: (20 + Math.random() * 10).toFixed(2),
-    humidity: (40 + Math.random() * 30).toFixed(2),
-    trafficDensity: Math.floor(Math.random() * 100),
-    pollutionLevel: (50 + Math.random() * 50).toFixed(2),
+    sensor_id: s.id,
+    zone: s.zone,
+    latitude: parseFloat((s.lat + (Math.random()-0.5) * 0.001).toFixed(6)),
+    longitude: parseFloat((s.lon + (Math.random()-0.5) * 0.001).toFixed(6)),
+    deviceModel: deviceModels[Math.floor(Math.random() * deviceModels.length)],
+    firmwareVersion,
+    batteryLevel,
+    status: batteryLevel < 25 ? "low_battery" : "ok",
+    signalStrength,
+    temperature,
+    humidity,
+    trafficDensity,
+    pollutionLevel,
+    co2Level,
+    noiseLevel,
+    lightLevel,
+    occupancy
   };
 }
 

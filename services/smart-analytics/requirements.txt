@@ -1,0 +1,9 @@
+# Folder: services/smart-analytics/requirements.txt
+fastapi==0.95.2
+uvicorn[standard]==0.22.0
+kafka-python==2.1.0
+pymongo==4.4.0
+scikit-learn==1.3.2
+pandas==2.2.2
+joblib==1.3.2
+python-dotenv==1.0.1
